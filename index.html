@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>АвиаНавигатор: Твой путь в гражданской авиации</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,800;1,900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        afl: {
+                            darkNavy: '#00102A',
+                            navy: '#001A3A',
+                            blue: '#00529B',
+                            lightBlue: '#E6F0FA',
+                            red: '#C4161C',
+                            redHover: '#A81016',
+                            border: '#CBD5E1'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #00102A;
+        }
+        .afl-bg {
+            background: linear-gradient(135deg, #000B1E 0%, #00102A 50%, #001A3A 100%);
+        }
+        .glass-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        }
+        .option-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .option-card:hover {
+            border-color: #00529B;
+            background-color: #F0F6FC;
+            transform: translateY(-1px);
+        }
+        .option-card.selected {
+            border-color: #00529B;
+            background-color: #E6F0FA;
+            box-shadow: 0 0 0 2px #00529B;
+        }
+        .afl-wordmark {
+            font-family: 'Inter', sans-serif;
+            font-weight: 900;
+            font-style: italic;
+            letter-spacing: -0.04em;
+        }
+        .toast-animation {
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="afl-bg text-slate-800 min-h-screen flex flex-col justify-between selection:bg-afl-blue selection:text-white relative">
+
+    <header class="w-full bg-afl-darkNavy border-b border-white/10 sticky top-0 z-40 shadow-xl">
+        <div class="max-w-5xl mx-auto px-4 md:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center cursor-pointer select-none" onclick="restartQuiz()">
+                <div class="flex items-center">
+                    <span class="afl-wordmark text-white text-2xl md:text-3xl uppercase tracking-tighter pr-1">
+                        АЭРОФЛОТ
+                    </span>
+                    <svg class="h-7 md:h-9 w-auto -ml-0.5" viewBox="0 0 165 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0 34C45 34 85 10 128 6C148 4 158 9 165 12C152 7 132 8 102 15C65 24 32 36 0 34Z" fill="#FFFFFF"/>
+                        <path d="M0 38C45 38 85 17 128 15C148 14 158 18 165 21C152 16 132 17 102 23C65 31 32 40 0 38Z" fill="#00529B"/>
+                        <path d="M0 42C45 42 85 24 128 23C148 22 158 26 165 29C152 24 132 25 102 30C65 38 32 44 0 42Z" fill="#C4161C"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div id="progress-indicator" class="hidden text-xs md:text-sm font-medium text-white bg-afl-navy px-4 py-1.5 rounded-full border border-white/20 flex items-center gap-2">
+                <span>Вопрос</span>
+                <span id="current-q-num" class="text-afl-red font-bold text-base">1</span>
+                <span class="text-slate-300">из 7</span>
+            </div>
+        </div>
+        <div class="h-1 w-full bg-gradient-to-r from-white via-afl-blue to-afl-red"></div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-4 md:p-8">
+        <div class="w-full max-w-2xl mx-auto">
+            <div id="screen-welcome" class="glass-card p-8 md:p-12 rounded-3xl shadow-2xl text-center space-y-6 relative overflow-hidden">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-afl-darkNavy text-white shadow-xl text-3xl mb-1">
+                    ✈️
+                </div>
+
+                <div class="space-y-3">
+                    <span class="text-xs font-bold uppercase tracking-widest text-afl-blue bg-afl-lightBlue px-3.5 py-1.5 rounded-full border border-blue-200">
+                        Профориентационный тест
+                    </span>
+                    <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight text-afl-darkNavy">
+                        АвиаНавигатор: Твой путь в гражданской авиации
+                    </h1>
+                    <p class="text-slate-600 text-sm md:text-base max-w-lg mx-auto leading-relaxed">
+                        Пройдите экспресс-тест, чтобы определить наиболее подходящее на��равление карьеры в авиационной отрасли. Ответы на вопросы помогут выявить ваши сильные стороны и предрасположенности к профессиональным ролям.
+                    </p>
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="startQuiz()" class="w-full md:w-auto px-10 py-4 bg-afl-blue hover:bg-afl-darkNavy text-white font-bold rounded-2xl shadow-xl shadow-afl-blue/20 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 text-base flex items-center justify-center gap-3 mx-auto">
+                        <span>Пройти тест</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 pt-6 border-t border-slate-200 text-xs text-slate-500 font-medium">
+                    <div class="flex flex-col items-center"><span class="font-bold text-afl-darkNavy text-base">7</span> вопросов</div>
+                    <div class="flex flex-col items-center"><span class="font-bold text-afl-darkNavy text-base">11</span> направлений</div>
+                    <div class="flex flex-col items-center"><span class="font-bold text-afl-darkNavy text-base">~3</span> минуты</div>
+                </div>
+            </div>
+
+            <div id="screen-quiz" class="hidden glass-card p-6 md:p-10 rounded-3xl shadow-2xl space-y-6 relative">
+                <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="bg-gradient-to-r from-afl-blue to-afl-red h-full transition-all duration-300 rounded-full" style="width: 14%;"></div>
+                </div>
+
+                <div class="space-y-2">
+                    <span id="question-tag" class="text-xs font-bold uppercase tracking-wider text-afl-blue bg-afl-lightBlue px-3.5 py-1 rounded-full border border-blue-200">
+                        Тематич��ский блок
+                    </span>
+                    <h2 id="question-text" class="text-lg md:text-2xl font-bold text-afl-darkNavy pt-1 leading-snug">
+                        Текст вопроса...
+                    </h2>
+                </div>
+
+                <div id="options-container" class="space-y-2.5 pt-1"></div>
+
+                <div class="flex justify-between items-center pt-4 border-t border-slate-200">
+                    <button id="btn-prev" onclick="prevQuestion()" class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-sm flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Назад
+                    </button>
+
+                    <button id="btn-next" onclick="nextQuestion()" class="px-7 py-2.5 rounded-xl bg-afl-blue hover:bg-afl-darkNavy text-white font-semibold transition-all text-sm flex items-center gap-2 shadow-md">
+                        <span id="btn-next-text">Далее</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="screen-result" class="hidden glass-card p-6 md:p-10 rounded-3xl shadow-2xl space-y-6">
+                <div class="text-center space-y-3">
+                    <div id="result-emoji" class="text-6xl md:text-7xl">🏆</div>
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-3.5 py-1 rounded-full border border-emerald-200">
+                            Ваше рекомендуемое направление
+                        </span>
+                        <h2 id="result-title" class="text-2xl md:text-3xl font-black text-afl-darkNavy pt-2">
+                            Название профессии
+                        </h2>
+                    </div>
+                </div>
+
+                <div class="bg-afl-lightBlue/60 border border-blue-200 rounded-2xl p-5 md:p-6 space-y-3">
+                    <h3 class="font-bold text-afl-darkNavy flex items-center gap-2 text-base">
+                        <span>💡</span> Почему именно эта профессия подходит вам:
+                    </h3>
+                    <p id="result-description" class="text-slate-700 leading-relaxed text-sm md:text-base">
+                        Подробный разбор совпадения...
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                    <button onclick="restartQuiz()" class="w-full py-3.5 bg-afl-navy hover:bg-afl-darkNavy text-white font-semibold rounded-xl shadow-md transition-all duration-300 flex items-center justify-center gap-2 text-sm">
+                        <span>🔄</span> Пройти тест заново
+                    </button>
+                    <button onclick="shareResult()" class="w-full py-3.5 bg-afl-red hover:bg-afl-redHover text-white font-semibold rounded-xl shadow-md transition-all duration-300 flex items-center justify-center gap-2 text-sm">
+                        <span>📤</span> Поделиться результатом
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" class="fixed bottom-6 right-6 hidden bg-afl-darkNavy text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-white/20 text-sm font-medium z-50 toast-animation flex items-center gap-3">
+        <span id="toast-icon">📋</span>
+        <span id="toast-message">Уведомление</span>
+    </div>
+
+    <footer class="w-full py-6 text-center text-xs text-slate-400 border-t border-white/10 bg-afl-darkNavy">
+        &copy; 2026 АвиаНавигатор. Профориентационный проект для студентов и выпускников.
+    </footer>
+
+    <script>
+        const categories = {
+            pilot: { name: "Пилот ��оздушного судна", emoji: "👨‍✈️" },
+            cabin_crew: { name: "Бортпроводник кабинного экипажа", emoji: "✈️" },
+            check_in: { name: "Агент по регистрации и посадке пассажиров", emoji: "🎫" },
+            marketing: { name: "Маркетинг и продажи", emoji: "📢" },
+            product: { name: "Управление продуктом и сервисами", emoji: "🎯" },
+            hr: { name: "Управление персоналом (HR)", emoji: "🤝" },
+            finance: { name: "Экономика и финансы", emoji: "📊" },
+            it: { name: "Информационные технологии (ИТ)", emoji: "💻" },
+            legal: { name: "Юриспруденция и правовое обеспечение", emoji: "⚖️" },
+            analytics: { name: "Аналитика данных и исследований", emoji: "🔢" },
+            medic: { name: "Авиационная медицина / ВЛЭК", emoji: "🩺" }
+        };
+
+        const questions = [
+            {
+                tag: "Предпочтения �� досуг",
+                question: "1. Как вы предпочитаете проводить свободное от учебы время?",
+                options: [
+                    { text: "Организую встречи, совместные поездки или культурные мероприятия для друзей", category: "cabin_crew" },
+                    { text: "Увлекаюсь техникой, авиасимуляторами, точными науками или сложным оборудованием", category: "pilot" },
+                    { text: "Планирую личные бюджеты, исследую инвестиции или анализирую рыночные тренды", category: "finance" },
+                    { text: "Изучаю программирование, создаю цифровые проекты или оптимизирую гаджеты", category: "it" },
+                    { text: "Помогаю знакомым оперативно решать логистические и организационные задачи", category: "check_in" },
+                    { text: "Интересуюсь темами здоровья, медицины, биохакинга и устройства организма", category: "medic" }
+                ]
+            },
+            {
+                tag: "Реакция на форс-мажор",
+                question: "2. Рейс задерживается на несколько часов. Какова ваша естественная реакция?",
+                options: [
+                    { text: "Уделю внимание людям рядом, чтобы снизить их тревогу и поддержать комфортную атмосферу", category: "cabin_crew" },
+                    { text: "Проанализирую технические причины задержки, метеоусловия и официальные сводки", category: "pilot" },
+                    { text: "Оценю возможности оптимизации пассажиропотока и наведения порядка в терминале", category: "check_in" },
+                    { text: "Подумаю об экономических издержках задержки и расчете компенсаций", category: "finance" },
+                    { text: "Обращу внимание на физическое самочувствие пассажиров, которым может потребоваться помощь", category: "medic" },
+                    { text: "Проверю, насколько корректно работают системы автоматического оповещения и табло", category: "it" }
+                ]
+            },
+            {
+                tag: "Командная работа",
+                question: "3. Какую роль вы обычно занимаете при работе над командными проектами?",
+                options: [
+                    { text: "Лидер команды, берущий на себя полную ответственность за принятие финальных решений", category: "pilot" },
+                    { text: "Спикер и презентатор, способный ярко представить результаты работы аудитории", category: "marketing" },
+                    { text: "Продуктолог, определяющий ценность проекта для пользователей и его концепцию", category: "product" },
+                    { text: "Аналитик, проверяющий достоверность данных, расчетов и статистики", category: "analytics" },
+                    { text: "Организатор внутренних процессов, следящий за сроками и ресурсами участников", category: "check_in" },
+                    { text: "Правовой консультант, проверяющий соответствие проекта правилам и стандартам", category: "legal" }
+                ]
+            },
+            {
+                tag: "Карьерные ценности",
+                question: "4. Какое ключевое качество вы считаете самым важным в своей будущей профессии?",
+                options: [
+                    { text: "Высокая ответственность, престиж и управление современными летательными аппаратами", category: "pilot" },
+                    { text: "Динамичный образ жизни, путешествия и постоянное общение с новыми людьми", category: "cabin_crew" },
+                    { text: "Создание и развитие п��редовых цифровых сервисов и информационных систем", category: "it" },
+                    { text: "Помощь людям, забота об их здоровье и физическом благополучии", category: "medic" },
+                    { text: "Работа с людьми: подбор, развитие талантов и формирование сильных команд", category: "hr" },
+                    { text: "Управление финансовыми потоками, инвестициями и экономической эффективностью", category: "finance" }
+                ]
+            },
+            {
+                tag: "Профессиональный интерес",
+                question: "5. Какая профессиональная задача или тема вызывает у вас наибольший интерес?",
+                options: [
+                    { text: "Авиационная техника, аэродинамика и управление сложными техническими комплексами", category: "pilot" },
+                    { text: "Разработка маркетинговых кампаний, продвижение брендов и привлечение клиентов", category: "marketing" },
+                    { text: "Анализ клиентского опыта, проектирование и совершенствование сервисов", category: "product" },
+                    { text: "Правовое сопровождение деятельности, договорная работа и решение юридических вопросов", category: "legal" },
+                    { text: "Корпоративная культура, системы мотивации персонала и развитие кадров", category: "hr" },
+                    { text: "Исследования в области биомедицины, адаптации организма к полетам и безопасность", category: "medic" }
+                ]
+            },
+            {
+                tag: "Стресс-менеджмент",
+                question: "6. Как вы действуете в условиях высокой неопределенности или стресса?",
+                options: [
+                    { text: "Строго следую проверенным регламентам, чек-листам и инструкциям", category: "pilot" },
+                    { text: "Сохраняю доброжелательность, успокаиваю окружающих и гашу конфликты вовлеченностью", category: "cabin_crew" },
+                    { text: "Быстро оцениваю ситуацию на месте и оперативно перераспределяю задачи", category: "check_in" },
+                    { text: "Опираюсь на цифры и факты, проводя углубленный анализ данных для поиска решения", category: "analytics" },
+                    { text: "Быстро адаптирую характеристики продукта или предложения под новые обстоятельства", category: "product" },
+                    { text: "Оцениваю риски для здоровья людей и принимаю необходимые защитные меры", category: "medic" }
+                ]
+            },
+            {
+                tag: "Личная предрасположенность",
+                question: "7. Какое из направлений деятельности вам ближе всего по характеру?",
+                options: [
+                    { text: "Точность, дисциплина и безупречное управление техникой за штурвалом", category: "pilot" },
+                    { text: "Гостеприимство, высокий уровень сервиса и эмпатия к людям", category: "cabin_crew" },
+                    { text: "Четкая организация наземных операций и работа с пассажиропотоком", category: "check_in" },
+                    { text: "Аналитика коммерческих показателей, продвижение и продажи", category: "marketing" },
+                    { text: "Создание удобных продуктов и цифровых решений для пользователей", category: "product" },
+                    { text: "Работа с базами данных, поиск закономерностей и построение прогнозов", category: "analytics" }
+                ]
+            }
+        ];
+
+        let currentQuestion = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+
+        const descriptions = {
+            pilot: "Ваш профиль характеризуется высочайшей дисциплиной, способностью брать на себя ответственность за сложные системы и сохранять хладнокровие. Профессия пилота — это вершина авиационного мастерства, сочетающая романтику неба и высочайшие технологии.",
+            cabin_crew: "Вы обладаете развитой эмпатией, отличными коммуникативными навыками и умением создавать атмосферу уюта. Бортпроводники — это главные амбассадоры комфорта и безопасности на борту воздушного судна.",
+            check_in: "Ваши сильные стороны — высокий уровень стрессоустойчивости, умение работать с людьми и оперативная реакция на изменение обстановки. Агенты по регистрации и посадке управляют ключевыми процессами в аэропорту.",
+            marketing: "Вам свойственны стратегическое видение, понимание трендов и умение привлекать аудиторию. Направление маркетинга и продаж отвечает за продвижение бренда, коммерческую загрузку рейсов и привлекательность услуг.",
+            product: "Ваш приоритет — клиентский опыт, проектирование удобных интерфейсов и сервисов. Менеджер по продукту создает стандарты обслуживания на борту и на земле, делая каждый этап путешествия безупречным.",
+            hr: "Вы прекрасно понимаете людей, умеете выявлять таланты и формировать сплоченные команды. Департамент HR отвечает за привлечение, обучение и развитие профессионального потенциала сотрудников.",
+            finance: "Ваш профиль отличается строгой математической логикой и любовью к точным расчетам. Финансово-экономическое направление обеспечивает устойчивость бизнеса, планирование бюджетов и инвестиции.",
+            it: "Вы нацелены на создание цифровых решений, программирование и работу с передовыми технологиями. ИТ-специалисты обеспечивают бесперебойную работу критически важных сервисов и автоматизацию авиакомпании.",
+            legal: "Вам свойственны системное мышление, внимание к нормам и защита интересов. Юридическое направление обеспечивает правовую чистоту международных сделок, договоров и регламентов.",
+            analytics: "Вы умеете видеть закономерности в больших массивах данных и принимать решения на основе фактов. Аналитики данных оптимизируют маршрутные сети, прогнозируют спрос и помогают бизнесу развиваться.",
+            medic: "Ваша главная ценность — здоровье и физическое благополучие человека. Авиационная медицина и специалисты ВЛЭК обеспечивают здоровье экипажей, допуск к полетам и медицинскую безопасность пассажиров."
+        };
+
+        function startQuiz() {
+            currentQuestion = 0;
+            userAnswers = new Array(questions.length).fill(null);
+            document.getElementById('screen-welcome').classList.add('hidden');
+            document.getElementById('screen-result').classList.add('hidden');
+            document.getElementById('screen-quiz').classList.remove('hidden');
+            document.getElementById('progress-indicator').classList.remove('hidden');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('current-q-num').innerText = currentQuestion + 1;
+            document.getElementById('question-tag').innerText = q.tag;
+            document.getElementById('question-text').innerText = q.question;
+
+            const progressPercent = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            q.options.forEach((opt, index) => {
+                const isSelected = userAnswers[currentQuestion] === index;
+                const btn = document.createElement('div');
+                btn.className = `option-card w-full text-left p-3.5 md:p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center space-x-3.5 cursor-pointer ${isSelected ? 'selected' : ''}`;
+                btn.innerHTML = `
+                    <div class="w-8 h-8 rounded-xl font-bold text-sm flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'bg-afl-blue text-white' : 'bg-slate-100 text-slate-600'}">
+                        ${String.fromCharCode(1040 + index)}
+                    </div>
+                    <span class="text-sm md:text-base font-medium text-slate-800 leading-snug">${opt.text}</span>
+                `;
+                btn.onclick = () => selectOption(index);
+                container.appendChild(btn);
+            });
+
+            document.getElementById('btn-prev').disabled = currentQuestion === 0;
+            const nextBtnText = document.getElementById('btn-next-text');
+            if (currentQuestion === questions.length - 1) {
+                nextBtnText.innerText = "Завершить";
+            } else {
+                nextBtnText.innerText = "Далее";
+            }
+        }
+
+        function selectOption(index) {
+            userAnswers[currentQuestion] = index;
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (userAnswers[currentQuestion] === null) {
+                showToast("Пожалуйста, выберите вариант ответа", "⚠️");
+                return;
+            }
+
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+            } else {
+                calculateAndShowResult();
+            }
+        }
+
+        function calculateAndShowResult() {
+            let scores = {};
+            for (let cat in categories) {
+                scores[cat] = 0;
+            }
+
+            userAnswers.forEach((ansIndex, qIndex) => {
+                if (ansIndex !== null) {
+                    const selectedCat = questions[qIndex].options[ansIndex].category;
+                    scores[selectedCat] = (scores[selectedCat] || 0) + 1;
+                }
+            });
+
+            let maxCat = 'pilot';
+            let maxScore = -1;
+            for (let cat in scores) {
+                if (scores[cat] > maxScore) {
+                    maxScore = scores[cat];
+                    maxCat = cat;
+                }
+            }
+
+            document.getElementById('screen-quiz').classList.add('hidden');
+            document.getElementById('progress-indicator').classList.add('hidden');
+            document.getElementById('screen-result').classList.remove('hidden');
+
+            const res = categories[maxCat];
+            document.getElementById('result-emoji').innerText = res.emoji;
+            document.getElementById('result-title').innerText = res.name;
+            document.getElementById('result-description').innerText = descriptions[maxCat];
+
+            confetti({
+                particleCount: 130,
+                spread: 75,
+                origin: { y: 0.6 },
+                colors: ['#001A3A', '#00529B', '#C4161C', '#FFFFFF']
+            });
+        }
+
+        function restartQuiz() {
+            startQuiz();
+        }
+
+        function showToast(message, icon = '📋') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = message;
+            document.getElementById('toast-icon').innerText = icon;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function shareResult() {
+            const title = document.getElementById('result-title').innerText;
+            const text = `Мой результат в тесте «АвиаНавигатор»: мне идеально подходит направление «${title}»! Пройди тест и найди свою профессию в авиации:`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'АвиаНавигатор',
+                    text: text,
+                    url: window.location.href
+                }).catch(() => {});
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = text + " " + window.location.href;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('Результат скопирован!', '📋');
+                } catch (err) {
+                    showToast('Ошибка копирования', '❌');
+                }
+                document.body.removeChild(textArea);
+            }
+        }
+    </script>
+</body>
+</html>
